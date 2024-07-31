@@ -1,6 +1,6 @@
 ## 2024年春夏季操作系统训练营
 
-
+test
 
 第一阶段将通过Rustlings进行测试，请按照以下步骤进行练习：
 
@@ -27,7 +27,6 @@
 
 # rustlings 🦀❤️
 
-</div>
 
 Greetings and welcome to `rustlings`. This project contains small exercises to get you used to reading and writing Rust code. This includes reading and responding to compiler messages!
 
