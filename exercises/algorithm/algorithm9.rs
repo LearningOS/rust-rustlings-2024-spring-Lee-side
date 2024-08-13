@@ -2,7 +2,6 @@
 	heap
 	This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
 
 use std::cmp::Ord;
 use std::default::Default;
@@ -37,7 +36,13 @@ where
     }
 
     pub fn add(&mut self, value: T) {
-        //TODO
+        if self.count + 1 >= self.items.len() {
+            self.items.push(value);
+        } else {
+            self.items[self.count + 1] = value;
+        }
+        self.count += 1;
+        self.heapify_up(self.count);
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
@@ -56,9 +61,40 @@ where
         self.left_child_idx(idx) + 1
     }
 
-    fn smallest_child_idx(&self, idx: usize) -> usize {
-        //TODO
-		0
+    fn smallest_child_idx(&self, idx: usize) -> Option<usize> {
+        let left = self.left_child_idx(idx);
+        let right = self.right_child_idx(idx);
+
+        // Check if the left child exists
+        if left < self.count {
+            // If the right child exists and is smaller (for MinHeap), return right child index
+            if right < self.count && (self.comparator)(&self.items[right], &self.items[left]) {
+                Some(right)
+            } else {
+                Some(left)
+            }
+        } else {
+            None
+        }
+    }
+
+    fn heapify_up(&mut self, idx: usize) {
+        if idx > 1 {
+            let parent = self.parent_idx(idx);
+            if (self.comparator)(&self.items[idx], &self.items[parent]) {
+                self.items.swap(idx, parent);
+                self.heapify_up(parent);
+            }
+        }
+    }
+
+    fn heapify_down(&mut self, idx: usize) {
+        if let Some(smallest_child) = self.smallest_child_idx(idx) {
+            if (self.comparator)(&self.items[smallest_child], &self.items[idx]) {
+                self.items.swap(idx, smallest_child);
+                self.heapify_down(smallest_child);
+            }
+        }
     }
 }
 
@@ -79,13 +115,20 @@ where
 
 impl<T> Iterator for Heap<T>
 where
-    T: Default,
+    T: Default + Clone,
 {
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
-        //TODO
-		None
+        if self.is_empty() {
+            None
+        } else {
+            let root = self.items[1].clone();
+            self.items.swap(1, self.count);
+            self.count -= 1;
+            self.heapify_down(1);
+            Some(root)
+        }
     }
 }
 

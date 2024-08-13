@@ -2,7 +2,6 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
@@ -69,15 +68,71 @@ impl<T> LinkedList<T> {
             },
         }
     }
-	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
-	{
-		//TODO
-		Self {
+    pub fn merge(list_a: LinkedList<T>, list_b: LinkedList<T>) -> Self
+    where
+        T: std::cmp::PartialOrd + Copy,
+    {
+        let mut result = Self {
             length: 0,
             start: None,
             end: None,
+        };
+        let mut a = list_a.start;
+        let mut b = list_b.start;
+
+        let mut result_start: Option<NonNull<Node<T>>> = None;
+        let mut result_end: Option<NonNull<Node<T>>> = None;
+
+        while a.is_some() && b.is_some() {
+            unsafe {
+                let a_val = (*a.unwrap().as_ptr()).val;
+                let b_val = (*b.unwrap().as_ptr()).val;
+
+                let new_node = if a_val <= b_val {
+                    a = (*a.unwrap().as_ptr()).next;
+                    Box::new(Node::new(a_val))
+                } else {
+                    b = (*b.unwrap().as_ptr()).next;
+                    Box::new(Node::new(b_val))
+                };
+
+                let new_node_ptr = NonNull::new(Box::into_raw(new_node)).unwrap();
+                if result_start.is_none() {
+                    result_start = Some(new_node_ptr);
+                    result_end = result_start;
+                } else {
+                    unsafe { (*result_end.unwrap().as_ptr()).next = Some(new_node_ptr) };
+                    result_end = Some(new_node_ptr);
+                }
+            }
         }
-	}
+
+        // Attach remaining nodes
+        let mut remaining = if a.is_some() { a } else { b };
+        while remaining.is_some() {
+            unsafe {
+                let val = (*remaining.unwrap().as_ptr()).val;
+                let new_node = Box::new(Node::new(val));
+                let new_node_ptr = NonNull::new(Box::into_raw(new_node)).unwrap();
+
+                if result_end.is_none() {
+                    result_start = Some(new_node_ptr);
+                    result_end = result_start;
+                } else {
+                    (*result_end.unwrap().as_ptr()).next = Some(new_node_ptr);
+                    result_end = Some(new_node_ptr);
+                }
+
+                remaining = (*remaining.unwrap().as_ptr()).next;
+            }
+        }
+
+        result.start = result_start;
+        result.end = result_end;
+        result.length = list_a.length + list_b.length;
+
+        result
+    }
 }
 
 impl<T> Display for LinkedList<T>
@@ -135,7 +190,7 @@ mod tests {
 		let vec_a = vec![1,3,5,7];
 		let vec_b = vec![2,4,6,8];
 		let target_vec = vec![1,2,3,4,5,6,7,8];
-		
+
 		for i in 0..vec_a.len(){
 			list_a.add(vec_a[i]);
 		}
